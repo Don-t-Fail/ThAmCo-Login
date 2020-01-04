@@ -31,6 +31,24 @@ namespace ThAmCo.Login
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            services.ConfigureApplicationCookie(options => {
+                options.Cookie.Name = ".AspNet.SharedCookie";
+            });
+
+            services.AddAuthentication("Identity.Thamco")
+                    .AddCookie("Identity.Thamco", options =>
+                    {
+                        options.Cookie.Name = ".AspNet.SharedCookie";
+                        options.Cookie.Domain = "localhost";
+                    });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("StaffOnly", builder =>
+                {
+                    builder.RequireClaim("role", "staff");
+                });
+            });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
@@ -53,11 +71,13 @@ namespace ThAmCo.Login
             app.UseStaticFiles();
             app.UseCookiePolicy();
 
+            app.UseAuthentication();
+
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
+                    template: "{controller=Login}/{action=Login}");
             });
         }
     }
